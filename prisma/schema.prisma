@@ -12,3 +12,36 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Member {
+  id Int @id @default(autoincrement())
+  email String @unique @db.VarChar(50)
+  password String  @db.VarChar(255)
+  name String @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  myPeyInfo MyPetInfo[]
+
+  @@map("members")
+  @@index([deletedAt])
+}
+
+model MyPetInfo {
+  id Int @id @default(autoincrement())
+  memberId Int
+  name String @db.VarChar(20)
+  species String @db.VarChar(20)
+  breed String? @db.VarChar(20)
+  birthDate DateTime?
+  weight Decimal?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  deletedAt DateTime?
+
+  member Member @relation(fields: [memberId], references: [id])
+
+  @@map("my_pet_info")
+  @@index([memberId,deletedAt])
+}
