@@ -1,11 +1,33 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
+import { PrismaService } from '../prisma/prisma.service';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class MembersService {
-  create(createMemberDto: CreateMemberDto) {
-    return 'This action adds a new member';
+  constructor(private prisma: PrismaService) {}
+
+  async create(createMemberDto: CreateMemberDto) {
+    const { email, password, name } = createMemberDto;
+    const alreadyExitUser = await this.prisma.member.findUnique({
+      where: { email },
+    });
+    if (alreadyExitUser) {
+      //TODO Global Exception 만들기
+      throw new ConflictException('이미 존재하는 회원이다냥');
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newMember = await this.prisma.member.create({
+      data: {
+        email: createMemberDto.email,
+        name: createMemberDto.name,
+        password: hashedPassword,
+      },
+    });
+
+    const { ...result } = newMember;
+    return result;
   }
 
   findAll() {
