@@ -5,10 +5,10 @@ import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
-export class MembersService {
+export class MemberService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createMemberDto: CreateMemberDto) {
+  async create(createMemberDto: CreateMemberDto): Promise<string> {
     const { email, password, name } = createMemberDto;
     const alreadyExitUser = await this.prisma.member.findUnique({
       where: { email },
@@ -20,14 +20,14 @@ export class MembersService {
     const hashedPassword = await bcrypt.hash(password, 10);
     const newMember = await this.prisma.member.create({
       data: {
-        email: createMemberDto.email,
-        name: createMemberDto.name,
+        email: email,
+        name: name,
         password: hashedPassword,
       },
     });
 
     const { ...result } = newMember;
-    return result;
+    return result.email;
   }
 
   findAll() {
