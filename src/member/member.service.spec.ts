@@ -5,6 +5,7 @@ import { CreateMemberDto } from './dto/create-member.dto';
 import { ConfigModule } from '@nestjs/config';
 import { ConflictException } from '@nestjs/common';
 import { MemberService } from './member.service';
+import { MemberAlreadyExistsException } from '../exception/member/member-already-exists.exception';
 
 describe('MembersService Integration', () => {
   let memberService: MemberService;
@@ -73,7 +74,9 @@ describe('MembersService Integration', () => {
     };
 
     //when //then
-    await expect(memberService.create(duplicateUserDto)).rejects.toThrow(ConflictException);
+    await expect(memberService.create(duplicateUserDto)).rejects.toThrow(
+      MemberAlreadyExistsException,
+    );
   });
 
   test('create(): 비밀번호는 암호화 되어야한다.', async () => {

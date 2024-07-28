@@ -3,6 +3,7 @@ import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
+import { MemberAlreadyExistsException } from '../exception/member/member-already-exists.exception';
 
 @Injectable()
 export class MemberService {
@@ -14,8 +15,7 @@ export class MemberService {
       where: { email },
     });
     if (alreadyExitUser) {
-      //TODO Global Exception 만들기
-      throw new ConflictException('이미 존재하는 회원이다냥');
+      throw new MemberAlreadyExistsException();
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     const newMember = await this.prisma.member.create({
