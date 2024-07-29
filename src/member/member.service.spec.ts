@@ -1,11 +1,13 @@
 import { Test } from '@nestjs/testing';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
-import { CreateMemberDto } from './dto/create-member.dto';
+import { CreateMemberRequest } from './dto/presentation/create-member.request';
 import { ConfigModule } from '@nestjs/config';
 import { ConflictException } from '@nestjs/common';
 import { MemberService } from './member.service';
 import { MemberAlreadyExistsException } from '../exception/member/member-already-exists.exception';
+import { CreateMemberParams } from './dto/business/create-member-params';
+import { CreatedMemberResponse } from './dto/business/created-member.response';
 
 describe('MembersService Integration', () => {
   let memberService: MemberService;
@@ -40,17 +42,17 @@ describe('MembersService Integration', () => {
 
   test('create(): 회원가입에 성공해 데이터베이스에 신규 회원이 저장되어야한다.', async () => {
     //given
-    const createMemberDto: CreateMemberDto = {
+    const createMemberDto: CreateMemberParams = {
       email: testEmail,
       password: testPassword,
       name: testName,
     };
     //when
-    const createdMemberEmail = await memberService.create(createMemberDto);
+    const memberResponse: CreatedMemberResponse = await memberService.create(createMemberDto);
 
     //then
     const createdMember = await prismaService.member.findUnique({
-      where: { email: createdMemberEmail },
+      where: { email: memberResponse.email },
     });
 
     expect(createdMember).toBeDefined();
@@ -60,14 +62,14 @@ describe('MembersService Integration', () => {
 
   test('create(): 이미 존재하는 회원일 경우 예외가 발생되어야한다.', async () => {
     //given
-    const firstUserDto: CreateMemberDto = {
+    const firstUserDto: CreateMemberParams = {
       email: testEmail,
       password: testPassword,
       name: testName,
     };
     await memberService.create(firstUserDto);
 
-    const duplicateUserDto: CreateMemberDto = {
+    const duplicateUserDto: CreateMemberParams = {
       email: testEmail,
       password: testPassword,
       name: testName,
@@ -81,18 +83,18 @@ describe('MembersService Integration', () => {
 
   test('create(): 비밀번호는 암호화 되어야한다.', async () => {
     //given
-    const createMemberDto: CreateMemberDto = {
+    const createMemberDto: CreateMemberParams = {
       email: testEmail,
       password: testPassword,
       name: testName,
     };
 
     //when
-    const createdMemberEmail = await memberService.create(createMemberDto);
+    const memberResponse: CreatedMemberResponse = await memberService.create(createMemberDto);
 
     //then
     const createdMember = await prismaService.member.findUnique({
-      where: { email: createdMemberEmail },
+      where: { email: memberResponse.email },
     });
 
     expect(createdMember.password).not.toBe(createMemberDto.password);

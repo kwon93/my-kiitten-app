@@ -10,8 +10,9 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { MemberService } from './member.service';
-import { CreateMemberDto } from './dto/create-member.dto';
-import { UpdateMemberDto } from './dto/update-member.dto';
+import { CreateMemberRequest } from './dto/presentation/create-member.request';
+import { UpdateMemberDto } from './dto/presentation/update-member.dto';
+import { CreateMemberParams } from './dto/business/create-member-params';
 
 @Controller('member')
 export class MemberController {
@@ -19,8 +20,8 @@ export class MemberController {
 
   @Post('signup')
   @HttpCode(HttpStatus.CREATED)
-  create(@Body() createMemberDto: CreateMemberDto) {
-    return this.membersService.create(createMemberDto);
+  async create(@Body() request: CreateMemberRequest) {
+    return await this.membersService.create(CreateMemberParams.from(request));
   }
 
   @Get()

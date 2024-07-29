@@ -1,15 +1,17 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import { CreateMemberDto } from './dto/create-member.dto';
-import { UpdateMemberDto } from './dto/update-member.dto';
+import { CreateMemberRequest } from './dto/presentation/create-member.request';
+import { UpdateMemberDto } from './dto/presentation/update-member.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { MemberAlreadyExistsException } from '../exception/member/member-already-exists.exception';
+import { CreateMemberParams } from './dto/business/create-member-params';
+import { CreatedMemberResponse } from './dto/business/created-member.response';
 
 @Injectable()
 export class MemberService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createMemberDto: CreateMemberDto): Promise<string> {
+  async create(createMemberDto: CreateMemberParams): Promise<CreatedMemberResponse> {
     const { email, password, name } = createMemberDto;
     const alreadyExitUser = await this.prisma.member.findUnique({
       where: { email },
@@ -18,7 +20,7 @@ export class MemberService {
       throw new MemberAlreadyExistsException();
     }
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newMember = await this.prisma.member.create({
+    const createdMember = await this.prisma.member.create({
       data: {
         email: email,
         name: name,
@@ -26,8 +28,7 @@ export class MemberService {
       },
     });
 
-    const { ...result } = newMember;
-    return result.email;
+    return CreatedMemberResponse.from(createdMember);
   }
 
   findAll() {
