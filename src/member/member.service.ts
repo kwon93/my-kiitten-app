@@ -5,23 +5,24 @@ import * as bcrypt from 'bcrypt';
 import { MemberAlreadyExistsException } from '../exception/member/member-already-exists.exception';
 import { CreateMemberParams } from './dto/business/create-member-params';
 import { CreatedMemberResponse } from './dto/business/created-member.response';
+import { MemberRepository } from './member.repository';
 
 @Injectable()
 export class MemberService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    readonly prisma: PrismaService,
+    readonly memberRepository: MemberRepository,
+  ) {}
 
   async create(createMemberDto: CreateMemberParams): Promise<CreatedMemberResponse> {
     const { email, password, name } = createMemberDto;
-    const alreadyExitUser = await this.prisma.member.findUnique({
-      where: { email },
-    });
-    this.duplicateMemberValidation(alreadyExitUser);
+    await this.duplicateMemberValidation(email);
+
     const hashedPassword: string = await this.encryptUserPassword(password);
-    //TODO repository를 나눠서 Prisma 의존성 덜기..
-    const createdMember = await this.persistMemberInfo(email, name, hashedPassword);
+    const createdMember = await this.storeMemberInfo(email, name, hashedPassword);
+
     return CreatedMemberResponse.from(createdMember);
   }
-
 
   findAll() {
     return `This action returns all members`;
@@ -39,13 +40,11 @@ export class MemberService {
     return `This action removes a #${id} member`;
   }
 
-  private async persistMemberInfo(email: string, name: string, hashedPassword: string) {
-    return this.prisma.member.create({
-      data: {
-        email: email,
-        name: name,
-        password: hashedPassword,
-      },
+  private async storeMemberInfo(email: string, name: string, hashedPassword: string) {
+    return this.memberRepository.persistMember({
+      email: email,
+      name: name,
+      password: hashedPassword,
     });
   }
 
@@ -53,9 +52,8 @@ export class MemberService {
     return await bcrypt.hash(password, 10);
   }
 
-  private duplicateMemberValidation(alreadyExitUser: object) {
-    if (alreadyExitUser) {
-      throw new MemberAlreadyExistsException();
-    }
+  private async duplicateMemberValidation(email: string) {
+    const alreadyExitUser = await this.memberRepository.findByEmail(email);
+    if (alreadyExitUser) throw new MemberAlreadyExistsException();
   }
 }

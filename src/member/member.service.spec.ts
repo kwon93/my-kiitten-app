@@ -8,10 +8,13 @@ import { MemberService } from './member.service';
 import { MemberAlreadyExistsException } from '../exception/member/member-already-exists.exception';
 import { CreateMemberParams } from './dto/business/create-member-params';
 import { CreatedMemberResponse } from './dto/business/created-member.response';
+import { MemberRepository } from './member.repository';
 
 describe('MembersService Integration', () => {
   let memberService: MemberService;
   let prismaService: PrismaService;
+  let memberRepository: MemberRepository;
+
   const testEmail: string = 'foo1@test.com';
   const testPassword: string = 'password12';
   const testName: string = 'foo';
@@ -25,11 +28,16 @@ describe('MembersService Integration', () => {
           provide: PrismaService,
           useClass: PrismaService,
         },
+        {
+          provide: MemberRepository,
+          useClass: MemberRepository,
+        },
       ],
     }).compile();
 
     memberService = module.get<MemberService>(MemberService);
     prismaService = module.get<PrismaService>(PrismaService);
+    memberRepository = module.get<MemberRepository>(MemberRepository);
   });
 
   afterAll(async () => {
