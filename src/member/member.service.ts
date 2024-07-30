@@ -1,5 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
-import { CreateMemberRequest } from './dto/presentation/create-member.request';
+import { Injectable } from '@nestjs/common';
 import { UpdateMemberDto } from './dto/presentation/update-member.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
@@ -16,20 +15,13 @@ export class MemberService {
     const alreadyExitUser = await this.prisma.member.findUnique({
       where: { email },
     });
-    if (alreadyExitUser) {
-      throw new MemberAlreadyExistsException();
-    }
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const createdMember = await this.prisma.member.create({
-      data: {
-        email: email,
-        name: name,
-        password: hashedPassword,
-      },
-    });
-
+    this.duplicateMemberValidation(alreadyExitUser);
+    const hashedPassword: string = await this.encryptUserPassword(password);
+    //TODO repository를 나눠서 Prisma 의존성 덜기..
+    const createdMember = await this.persistMemberInfo(email, name, hashedPassword);
     return CreatedMemberResponse.from(createdMember);
   }
+
 
   findAll() {
     return `This action returns all members`;
@@ -45,5 +37,25 @@ export class MemberService {
 
   remove(id: number) {
     return `This action removes a #${id} member`;
+  }
+
+  private async persistMemberInfo(email: string, name: string, hashedPassword: string) {
+    return this.prisma.member.create({
+      data: {
+        email: email,
+        name: name,
+        password: hashedPassword,
+      },
+    });
+  }
+
+  private async encryptUserPassword(password: string) {
+    return await bcrypt.hash(password, 10);
+  }
+
+  private duplicateMemberValidation(alreadyExitUser: object) {
+    if (alreadyExitUser) {
+      throw new MemberAlreadyExistsException();
+    }
   }
 }
