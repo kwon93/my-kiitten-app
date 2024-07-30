@@ -3,7 +3,6 @@ import { IsConfirmed } from '../../../common/decorators/isConfirm.decorator';
 
 export class CreateMemberRequest {
   @IsEmail({}, { message: '올바른 이메일 형식이 아니다냥!' })
-  @IsNotEmpty({ message: '사용될 이메일을 입력하라냥!' })
   @MaxLength(320, { message: '이메일이 원래 이렇기 기냥...??' })
   email: string;
 
