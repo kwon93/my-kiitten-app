@@ -20,8 +20,8 @@ export class MemberController {
 
   @Post('signup')
   @HttpCode(HttpStatus.CREATED)
-  async create(@Body() request: CreateMemberRequest) {
-    return await this.membersService.create(CreateMemberParams.from(request));
+  async signup(@Body() request: CreateMemberRequest) {
+    return await this.membersService.signupProcess(CreateMemberParams.from(request));
   }
 
   @Get()

@@ -56,7 +56,7 @@ describe('MembersService Integration', () => {
       name: testName,
     };
     //when
-    const memberResponse: CreatedMemberResponse = await memberService.create(createMemberDto);
+    const memberResponse: CreatedMemberResponse = await memberService.signupProcess(createMemberDto);
 
     //then
     const createdMember = await prismaService.member.findUnique({
@@ -75,7 +75,7 @@ describe('MembersService Integration', () => {
       password: testPassword,
       name: testName,
     };
-    await memberService.create(firstUserDto);
+    await memberService.signupProcess(firstUserDto);
 
     const duplicateUserDto: CreateMemberParams = {
       email: testEmail,
@@ -84,7 +84,7 @@ describe('MembersService Integration', () => {
     };
 
     //when //then
-    await expect(memberService.create(duplicateUserDto)).rejects.toThrow(
+    await expect(memberService.signupProcess(duplicateUserDto)).rejects.toThrow(
       MemberAlreadyExistsException,
     );
   });
@@ -98,7 +98,7 @@ describe('MembersService Integration', () => {
     };
 
     //when
-    const memberResponse: CreatedMemberResponse = await memberService.create(createMemberDto);
+    const memberResponse: CreatedMemberResponse = await memberService.signupProcess(createMemberDto);
 
     //then
     const createdMember = await prismaService.member.findUnique({

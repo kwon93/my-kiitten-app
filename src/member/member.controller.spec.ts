@@ -16,7 +16,7 @@ describe('membersController test', () => {
         {
           provide: MemberService,
           useValue: {
-            create: jest.fn(),
+            signupProcess: jest.fn(),
           },
         },
       ],

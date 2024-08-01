@@ -6,6 +6,7 @@ import { MemberAlreadyExistsException } from '../exception/member/member-already
 import { CreateMemberParams } from './dto/business/create-member-params';
 import { CreatedMemberResponse } from './dto/business/created-member.response';
 import { MemberRepository } from './member.repository';
+import { MemberPersistDto } from './dto/persistance/member-persist-dto';
 
 @Injectable()
 export class MemberService {
@@ -14,12 +15,14 @@ export class MemberService {
     readonly memberRepository: MemberRepository,
   ) {}
 
-  async create(createMemberDto: CreateMemberParams): Promise<CreatedMemberResponse> {
+  async signupProcess(createMemberDto: CreateMemberParams): Promise<CreatedMemberResponse> {
     const { email, password, name } = createMemberDto;
     await this.duplicateMemberValidation(email);
 
     const hashedPassword: string = await this.encryptUserPassword(password);
-    const createdMember = await this.storeMemberInfo(email, name, hashedPassword);
+    const createdMember = await this.storeMemberInfo(
+      MemberPersistDto.of(email, name, hashedPassword),
+    );
 
     return CreatedMemberResponse.from(createdMember);
   }
@@ -40,11 +43,11 @@ export class MemberService {
     return `This action removes a #${id} member`;
   }
 
-  private async storeMemberInfo(email: string, name: string, hashedPassword: string) {
+  private async storeMemberInfo(memberPersistDto: MemberPersistDto) {
     return this.memberRepository.persistMember({
-      email: email,
-      name: name,
-      password: hashedPassword,
+      email: memberPersistDto.email,
+      name: memberPersistDto.name,
+      password: memberPersistDto.password,
     });
   }
 
