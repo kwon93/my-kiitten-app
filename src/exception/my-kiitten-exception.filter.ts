@@ -12,9 +12,10 @@ export class MyKiittenExceptionFilter implements ExceptionFilter {
     const errorResponse = exception.getResponse() as HttpExceptionResponse;
 
     response.status(httpStatus).json({
-      status: httpStatus,
       timestamp: new Date().toISOString(),
-      message: errorResponse.message,
+      status: httpStatus,
+      errorMessage: exception.message,
+      validMessage: errorResponse.message,
       path: request.url,
     });
   }
